@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    MyBatis SQL mapping file.
+    namespace must equal the Java mapper interface full class name.
+-->
+<mapper namespace="com.example.ssm.mapper.BookMapper">
+    <!-- Maps database column names to Java property names. -->
+    <resultMap id="BookResultMap" type="Book">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="author" column="author"/>
+        <result property="price" column="price"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- id="findAll" matches BookMapper.findAll(). -->
+    <select id="findAll" resultMap="BookResultMap">
+        select id, title, author, price, created_at, updated_at
+        from books
+        order by id
+    </select>
+
+    <select id="findById" resultMap="BookResultMap">
+        select id, title, author, price, created_at, updated_at
+        from books
+        where id = #{id}
+    </select>
+
+    <!-- useGeneratedKeys writes the generated primary key back into book.id. -->
+    <insert id="insert" parameterType="Book" useGeneratedKeys="true" keyProperty="id">
+        insert into books (title, author, price, created_at, updated_at)
+        values (#{title}, #{author}, #{price}, current_timestamp, current_timestamp)
+    </insert>
+
+    <update id="update" parameterType="Book">
+        update books
+        set title = #{title},
+            author = #{author},
+            price = #{price},
+            updated_at = current_timestamp
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from books
+        where id = #{id}
+    </delete>
+</mapper>
