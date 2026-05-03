@@ -44,7 +44,6 @@ ssm-crud-demo
 │   └── main
 │       ├── java
 │       │   └── com/example/ssm
-│       │       ├── config
 │       │       ├── controller
 │       │       ├── domain
 │       │       ├── mapper
@@ -53,7 +52,10 @@ ssm-crud-demo
 │       │   ├── data.sql
 │       │   ├── schema.sql
 │       │   └── mappers/BookMapper.xml
-│       └── webapp/WEB-INF/web.xml
+│       └── webapp/WEB-INF
+│           ├── applicationContext.xml
+│           ├── dispatcher-servlet.xml
+│           └── web.xml
 └── target
     └── ssm-crud-demo.war
 ```
@@ -90,27 +92,27 @@ http://localhost:8080/ssm-crud-demo/
 
 Tomcat 启动 WAR 时会先读取它。它主要配置了两部分：
 
-- `ContextLoaderListener`：启动 Spring 根容器，加载 `RootConfig`
-- `DispatcherServlet`：启动 Spring MVC 容器，加载 `WebConfig`
+- `ContextLoaderListener`：启动 Spring 根容器，加载 `applicationContext.xml`
+- `DispatcherServlet`：启动 Spring MVC 容器，加载 `dispatcher-servlet.xml`
 
 这就是传统 Spring MVC 项目常见的配置方式。请求会先进入 Tomcat，再进入 `DispatcherServlet`，最后分发到 Controller。
 
 关键配置含义：
 
-- `contextClass` 使用 `AnnotationConfigWebApplicationContext`，表示用 Java Config 类而不是 XML 配置文件
-- 根容器的 `contextConfigLocation` 指向 `com.example.ssm.config.RootConfig`
-- DispatcherServlet 的 `contextConfigLocation` 指向 `com.example.ssm.config.WebConfig`
+- 根容器的 `contextConfigLocation` 指向 `/WEB-INF/applicationContext.xml`
+- DispatcherServlet 的 `contextConfigLocation` 指向 `/WEB-INF/dispatcher-servlet.xml`
 - `<url-pattern>/</url-pattern>` 表示当前应用下的请求交给 Spring MVC 处理
 
-### `config/RootConfig.java`
+### `src/main/webapp/WEB-INF/applicationContext.xml`
 
-这是应用级配置，负责 Web 之外的核心 Bean：
+这是 Spring 根容器配置，负责 Web 之外的核心 Bean：
 
 - `DataSource`：数据库连接来源
 - `SqlSessionFactory`：MyBatis 核心工厂
 - `PlatformTransactionManager`：Spring 事务管理器
-- `@ComponentScan`：扫描 Service
-- `@MapperScan`：扫描 MyBatis Mapper 接口
+- `<context:component-scan>`：扫描 Service
+- `MapperScannerConfigurer`：扫描 MyBatis Mapper 接口
+- `<tx:annotation-driven>`：开启 `@Transactional`
 
 当前项目使用 H2 内存数据库。Tomcat 启动应用时会自动执行：
 
@@ -121,15 +123,17 @@ data.sql
 
 所以每次重启应用，数据都会回到初始示例数据。
 
-### `config/WebConfig.java`
+### `src/main/webapp/WEB-INF/dispatcher-servlet.xml`
 
 这是 Spring MVC 配置，负责 Web 层：
 
-- 开启 Spring MVC 注解能力
-- 扫描 Controller
-- 配置 Jackson JSON 转换器
+- `<mvc:annotation-driven>` 开启 Spring MVC 注解能力
+- `<context:component-scan>` 扫描 Controller
+- `MappingJackson2HttpMessageConverter` 配置 JSON 转换器
 
 这里注册了 `JavaTimeModule`，是为了让 `LocalDateTime` 能正常转成 JSON。
+
+这个项目现在没有 `config` 包，也没有 `RootConfig.java` / `WebConfig.java`。启动和框架配置都放回了传统 XML 文件中。
 
 ### `controller/HomeController.java`
 
@@ -326,7 +330,7 @@ http://localhost:8080/ssm-crud-demo/api/books
 - 数据在应用重启后会重置
 - 不适合正式保存业务数据
 
-以后要换成 MySQL，主要修改 `RootConfig.dataSource()`，把 H2 数据源换成 MySQL 数据源，并添加 MySQL JDBC 驱动依赖。
+以后要换成 MySQL，主要修改 `applicationContext.xml` 中的 `dataSource`，把 H2 数据源换成 MySQL 数据源，并添加 MySQL JDBC 驱动依赖。
 
 ## 7. 常见 404 原因
 
@@ -381,8 +385,8 @@ ROOT.war
 
 1. `pom.xml`
 2. `web.xml`
-3. `RootConfig.java`
-4. `WebConfig.java`
+3. `applicationContext.xml`
+4. `dispatcher-servlet.xml`
 5. `BookController.java`
 6. `BookService.java`
 7. `BookMapper.java`

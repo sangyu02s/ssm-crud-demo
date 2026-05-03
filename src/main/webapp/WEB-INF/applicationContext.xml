@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd
+           http://www.springframework.org/schema/jdbc https://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+           http://www.springframework.org/schema/tx https://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!--
+        Root Spring container.
+        This file replaces RootConfig.java and is loaded by ContextLoaderListener in web.xml.
+    -->
+
+    <!-- Scan @Service classes, such as BookService. Controllers are scanned by dispatcher-servlet.xml. -->
+    <context:component-scan base-package="com.example.ssm.service"/>
+
+    <!-- H2 lives in memory. These scripts create tables and insert demo rows when the app starts. -->
+    <jdbc:embedded-database id="dataSource" type="H2">
+        <jdbc:script location="classpath:schema.sql"/>
+        <jdbc:script location="classpath:data.sql"/>
+    </jdbc:embedded-database>
+
+    <!-- MyBatis SqlSessionFactory: connects MyBatis to Spring's DataSource and mapper XML files. -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="typeAliasesPackage" value="com.example.ssm.domain"/>
+        <property name="mapperLocations" value="classpath*:mappers/*.xml"/>
+    </bean>
+
+    <!-- Create Spring beans for mapper interfaces under com.example.ssm.mapper. -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.example.ssm.mapper"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+
+    <!-- Transaction manager used by @Transactional on service methods. -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!-- Enable @Transactional support. -->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+</beans>

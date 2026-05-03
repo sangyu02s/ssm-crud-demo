@@ -7,18 +7,15 @@
         Traditional web.xml bootstrap.
 
         Tomcat reads this file first. It starts the root Spring container with
-        RootConfig, then registers Spring MVC's DispatcherServlet with WebConfig.
+        applicationContext.xml, then registers Spring MVC's DispatcherServlet
+        with dispatcher-servlet.xml.
     -->
     <display-name>ssm-crud-demo</display-name>
 
-    <!-- Root Spring container configuration: services, datasource, MyBatis, transactions. -->
-    <context-param>
-        <param-name>contextClass</param-name>
-        <param-value>org.springframework.web.context.support.AnnotationConfigWebApplicationContext</param-value>
-    </context-param>
+    <!-- Root Spring container XML: services, datasource, MyBatis, transactions. -->
     <context-param>
         <param-name>contextConfigLocation</param-name>
-        <param-value>com.example.ssm.config.RootConfig</param-value>
+        <param-value>/WEB-INF/applicationContext.xml</param-value>
     </context-param>
 
     <!-- Creates the root WebApplicationContext before DispatcherServlet starts. -->
@@ -34,12 +31,8 @@
         <servlet-name>dispatcher</servlet-name>
         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
         <init-param>
-            <param-name>contextClass</param-name>
-            <param-value>org.springframework.web.context.support.AnnotationConfigWebApplicationContext</param-value>
-        </init-param>
-        <init-param>
             <param-name>contextConfigLocation</param-name>
-            <param-value>com.example.ssm.config.WebConfig</param-value>
+            <param-value>/WEB-INF/dispatcher-servlet.xml</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
