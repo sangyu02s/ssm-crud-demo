@@ -86,21 +86,21 @@ http://localhost:8080/ssm-crud-demo/
 
 ### `src/main/webapp/WEB-INF/web.xml`
 
-传统 Java Web 项目的描述文件。
+传统 Java Web 项目的描述文件，也是本项目的 Spring MVC 启动入口。
 
-这个项目里的 `web.xml` 很简洁，因为 Spring MVC 的核心注册已经交给 `AppInitializer.java` 完成。
+Tomcat 启动 WAR 时会先读取它。它主要配置了两部分：
 
-### `config/AppInitializer.java`
+- `ContextLoaderListener`：启动 Spring 根容器，加载 `RootConfig`
+- `DispatcherServlet`：启动 Spring MVC 容器，加载 `WebConfig`
 
-这是 Spring MVC 的启动入口，替代老式 `web.xml` 里手写 `DispatcherServlet` 的方式。
+这就是传统 Spring MVC 项目常见的配置方式。请求会先进入 Tomcat，再进入 `DispatcherServlet`，最后分发到 Controller。
 
-它做三件事：
+关键配置含义：
 
-- 指定根容器配置：`RootConfig`
-- 指定 Web MVC 配置：`WebConfig`
-- 指定 DispatcherServlet 拦截路径：`/`
-
-`DispatcherServlet` 是 Spring MVC 的前端控制器，所有进入 Spring MVC 的请求都会先到它这里。
+- `contextClass` 使用 `AnnotationConfigWebApplicationContext`，表示用 Java Config 类而不是 XML 配置文件
+- 根容器的 `contextConfigLocation` 指向 `com.example.ssm.config.RootConfig`
+- DispatcherServlet 的 `contextConfigLocation` 指向 `com.example.ssm.config.WebConfig`
+- `<url-pattern>/</url-pattern>` 表示当前应用下的请求交给 Spring MVC 处理
 
 ### `config/RootConfig.java`
 
@@ -380,9 +380,9 @@ ROOT.war
 建议按这个顺序看代码：
 
 1. `pom.xml`
-2. `AppInitializer.java`
-3. `WebConfig.java`
-4. `RootConfig.java`
+2. `web.xml`
+3. `RootConfig.java`
+4. `WebConfig.java`
 5. `BookController.java`
 6. `BookService.java`
 7. `BookMapper.java`
